@@ -8,6 +8,7 @@ import java.net.Socket;
  * @author yangxin
  * 2020/09/22 20:19
  */
+@SuppressWarnings("InfiniteLoopStatement")
 public class Server {
 
     public static void main(String[] args) {
