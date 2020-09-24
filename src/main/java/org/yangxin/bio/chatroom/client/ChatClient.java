@@ -56,6 +56,7 @@ public class ChatClient {
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
             // 处理用户的输入
+            new Thread(new UserInputHandler(this)).start();
             // 读取服务器转发的消息
             String msg;
             while ((msg = receive()) != null) {
