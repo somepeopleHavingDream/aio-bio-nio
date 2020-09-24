@@ -17,8 +17,6 @@ import java.util.Objects;
 @SuppressWarnings("InfiniteLoopStatement")
 public class ChatServer {
 
-    private final String QUIT = "quit";
-
     private ServerSocket serverSocket;
     private final Map<Integer, Writer> writerByPort;
 
@@ -26,7 +24,7 @@ public class ChatServer {
         writerByPort = new HashMap<>();
     }
 
-    public void addClient(Socket socket) throws IOException {
+    public synchronized void addClient(Socket socket) throws IOException {
         if (socket == null) {
             return;
         }
@@ -38,7 +36,7 @@ public class ChatServer {
         System.out.println("客户端【" + port + "】已连接到服务器");
     }
 
-    public void removeClient(Socket socket) throws IOException {
+    public synchronized void removeClient(Socket socket) throws IOException {
         if (socket == null) {
             return;
         }
@@ -52,7 +50,7 @@ public class ChatServer {
         System.out.println("客户端【" + port + "】已断开连接");
     }
 
-    public void forwardMessage(Socket socket, String forwardMsg) throws IOException {
+    public synchronized void forwardMessage(Socket socket, String forwardMsg) throws IOException {
         for (Map.Entry<Integer, Writer> entry : writerByPort.entrySet()) {
             if (!Objects.equals(entry.getKey(), socket.getPort())) {
                 Writer writer = entry.getValue();
@@ -73,6 +71,7 @@ public class ChatServer {
                 // 等待客户端连接
                 Socket socket = serverSocket.accept();
                 // 创建ChatHandler线程
+                new Thread(new ChatHandler(this, socket)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -81,7 +80,12 @@ public class ChatServer {
         }
     }
 
-    public void close() {
+    public boolean readyToQuit(String msg) {
+        String QUIT = "quit";
+        return  QUIT.equals(msg);
+    }
+
+    public synchronized void close() {
         if (serverSocket != null)  {
             try {
                 serverSocket.close();
