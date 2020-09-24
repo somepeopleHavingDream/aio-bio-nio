@@ -10,6 +10,7 @@ import java.net.Socket;
 public class Client {
 
     public static void main(String[] args) {
+        final String QUIT = "quit";
         final String DEFAULT_SERVER_HOST = "127.0.0.1";
         final int DEFAULT_SERVER_PORT = 8888;
         Socket socket;
@@ -25,15 +26,22 @@ public class Client {
 
             // 等待用户输入信息
             BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
-            String input = consoleReader.readLine();
+            while (true) {
+                String input = consoleReader.readLine();
 
-            // 发送消息给服务器
-            writer.write(input + "\n");
-            writer.flush();
+                // 发送消息给服务器
+                writer.write(input + "\n");
+                writer.flush();
 
-            // 读取服务器返回的消息
-            String msg = reader.readLine();
-            System.out.println(msg);
+                // 读取服务器返回的消息
+                String msg = reader.readLine();
+                System.out.println(msg);
+
+                // 查看用户是否退出
+                if (QUIT.equals(input)) {
+                    break;
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
