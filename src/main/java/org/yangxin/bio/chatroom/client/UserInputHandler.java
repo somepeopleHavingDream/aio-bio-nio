@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
  */
 public class UserInputHandler implements Runnable {
 
-    private ChatClient chatClient;
+    private final ChatClient chatClient;
 
     public UserInputHandler(ChatClient chatClient) {
         this.chatClient = chatClient;
