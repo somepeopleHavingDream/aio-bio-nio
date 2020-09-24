@@ -40,7 +40,7 @@ public class Server {
 
                     // 查看客户端是否退出
                     if (QUIT.equals(msg)) {
-                        System.out.println("客户端【" + socket.getPort() + "】" + "已断开连接");
+                        System.out.println("客户端【" + socket.getPort() + "】已断开连接");
                         break;
                     }
                 }
