@@ -36,6 +36,11 @@ public class ChatServer {
         System.out.println("客户端【" + port + "】已连接到服务器");
     }
 
+    /**
+     * 移除对应客户端套接字
+     *
+     * @param socket 客户端套接字
+     */
     public synchronized void removeClient(Socket socket) throws IOException {
         if (socket == null) {
             return;
@@ -43,6 +48,7 @@ public class ChatServer {
 
         int port = socket.getPort();
         if (writerByPort.containsKey(port)) {
+            // 套接字关闭，客户端那边会通过isInputShutdown知道该套接字已经被关闭，从而继续客户端下一步的业务流程
             writerByPort.get(port).close();
         }
         writerByPort.remove(port);
@@ -60,6 +66,9 @@ public class ChatServer {
         }
     }
 
+    /**
+     * 服务端主流程
+     */
     public void start() {
         try {
             // 绑定监听端口

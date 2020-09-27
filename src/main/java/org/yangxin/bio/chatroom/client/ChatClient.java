@@ -45,6 +45,9 @@ public class ChatClient {
         return QUIT.equals(msg);
     }
 
+    /**
+     * 客户端主流程
+     */
     public void start() {
         try {
             // 创建socket
@@ -70,6 +73,9 @@ public class ChatClient {
         }
     }
 
+    /**
+     * 关闭客户端，这里只要考虑输出流就行了。具体原因我也不清楚，猜测是服务端把输入流给关了，所以客户端只要关闭输出流就行了。
+     */
     public void close() {
         if (writer == null) {
             return;
