@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author yangxin
@@ -17,10 +19,12 @@ import java.util.Objects;
 @SuppressWarnings("InfiniteLoopStatement")
 public class ChatServer {
 
+    private final ExecutorService executorService;
     private ServerSocket serverSocket;
     private final Map<Integer, Writer> writerByPort;
 
     public ChatServer() {
+        executorService = Executors.newFixedThreadPool(10);
         writerByPort = new HashMap<>();
     }
 
@@ -80,7 +84,8 @@ public class ChatServer {
                 // 等待客户端连接
                 Socket socket = serverSocket.accept();
                 // 创建ChatHandler线程
-                new Thread(new ChatHandler(this, socket)).start();
+//                new Thread(new ChatHandler(this, socket)).start();
+                executorService.execute(new ChatHandler(this, socket));
             }
         } catch (IOException e) {
             e.printStackTrace();
