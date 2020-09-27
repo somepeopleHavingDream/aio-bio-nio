@@ -4,10 +4,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLOutput;
+import java.util.Set;
 
 /**
  * @author yangxin
@@ -24,7 +27,7 @@ public class ChatServer {
     private final ByteBuffer readBuffer = ByteBuffer.allocate(BUFFER);
     private final ByteBuffer writeBuffer = ByteBuffer.allocate(BUFFER);
     private final Charset charset = StandardCharsets.UTF_8;
-    private int port;
+    private final int port;
 
     public ChatServer() {
         this(DEFAULT_PORT);
@@ -37,13 +40,41 @@ public class ChatServer {
     /**
      * 服务端主流程
      */
+    @SuppressWarnings("InfiniteLoopStatement")
     public void start() {
         try {
             server = ServerSocketChannel.open();
             server.configureBlocking(false);
             server.socket().bind(new InetSocketAddress(port));
+
+            selector = Selector.open();
+            server.register(selector, SelectionKey.OP_ACCEPT);
+            System.out.println("启动服务器，监听端口：" + port + "……");
+
+            while (true) {
+                selector.select();
+                Set<SelectionKey> selectionKeySet = selector.selectedKeys();
+                for (SelectionKey selectionKey : selectionKeySet) {
+                    // 处理被触发的事件
+                    handles(selectionKey);
+                }
+                selectionKeySet.clear();
+            }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            close(selector);
+        }
+    }
+
+    private void handles(SelectionKey selectionKey) {
+        // ACCEPT事件：和客户端建立了连接
+        if (selectionKey.isAcceptable()) {
+
+        }
+        // READ事件：客户端发送了消息
+        if (selectionKey.isReadable()) {
+
         }
     }
 
