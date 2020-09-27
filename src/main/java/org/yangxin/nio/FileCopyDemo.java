@@ -1,6 +1,8 @@
 package org.yangxin.nio;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * @author yangxin
@@ -49,8 +51,49 @@ public class FileCopyDemo {
             }
         };
 
-        FileCopyRunner nioBufferCopy;
-        FileCopyRunner nioTransferCopy;
+        FileCopyRunner nioBufferCopy = (File source, File target) -> {
+            FileChannel inputChannel = null;
+            FileChannel outputChannel = null;
+
+            try {
+                inputChannel = new FileInputStream(source).getChannel();
+                outputChannel = new FileOutputStream(target).getChannel();
+
+                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                while (inputChannel.read(buffer) != -1) {
+                    buffer.flip();
+                    while (buffer.hasRemaining()) {
+                        outputChannel.write(buffer);
+                    }
+                    buffer.clear();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                close(outputChannel);
+                close(inputChannel);
+            }
+        };
+
+        FileCopyRunner nioTransferCopy = (File source, File target) -> {
+            FileChannel inputChannel = null;
+            FileChannel outputChannel = null;
+            try {
+                inputChannel = new FileInputStream(source).getChannel();
+                outputChannel = new FileOutputStream(target).getChannel();
+
+                long transferred = 0L;
+                long size = inputChannel.size();
+                while (transferred != size) {
+                    transferred += inputChannel.transferTo(transferred, size - transferred, outputChannel);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                close(outputChannel);
+                close(inputChannel);
+            }
+        };
     }
 
     private static void close(Closeable closeable) {
