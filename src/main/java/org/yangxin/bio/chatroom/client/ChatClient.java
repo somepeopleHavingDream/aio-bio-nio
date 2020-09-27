@@ -27,6 +27,7 @@ public class ChatClient {
 
     /**
      * 从服务器接收消息
+     * 这个地方的socket就是指服务端的socket，事实上客户端和服务端各自的套接字绑定的都是同一个ip和端口
      */
     public String receive() throws IOException {
         if (socket.isInputShutdown()) {
