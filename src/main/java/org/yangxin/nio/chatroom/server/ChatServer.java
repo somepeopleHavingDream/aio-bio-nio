@@ -10,7 +10,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLOutput;
 import java.util.Set;
 
 /**
@@ -24,17 +23,17 @@ public class ChatServer {
     private static final int BUFFER = 1024;
 
     private Selector selector;
-    private final ByteBuffer readBuffer = ByteBuffer.allocate(BUFFER);
-    private final ByteBuffer writeBuffer = ByteBuffer.allocate(BUFFER);
-    private final Charset charset = StandardCharsets.UTF_8;
-    private final int port;
+    private final ByteBuffer READ_BUFFER = ByteBuffer.allocate(BUFFER);
+    private final ByteBuffer WRITER_BUFFER = ByteBuffer.allocate(BUFFER);
+    private final Charset CHARSET = StandardCharsets.UTF_8;
+    private final int PORT;
 
     public ChatServer() {
         this(DEFAULT_PORT);
     }
 
-    public ChatServer(int port) {
-        this.port = port;
+    public ChatServer(int PORT) {
+        this.PORT = PORT;
     }
 
     /**
@@ -45,11 +44,11 @@ public class ChatServer {
         try {
             ServerSocketChannel server = ServerSocketChannel.open();
             server.configureBlocking(false);
-            server.socket().bind(new InetSocketAddress(port));
+            server.socket().bind(new InetSocketAddress(PORT));
 
             selector = Selector.open();
             server.register(selector, SelectionKey.OP_ACCEPT);
-            System.out.println("启动服务器，监听端口：" + port + "……");
+            System.out.println("启动服务器，监听端口：" + PORT + "……");
 
             while (true) {
                 selector.select();
@@ -114,11 +113,11 @@ public class ChatServer {
             if (key.isValid() && key.channel() instanceof SocketChannel) {
                 SocketChannel connectedClient = (SocketChannel) key.channel();
                 if (!client.equals(connectedClient)) {
-                    writeBuffer.clear();
-                    writeBuffer.put(Byte.parseByte(String.valueOf(charset.encode(getClientName(client) + ": " + forwardMsg))));
-                    writeBuffer.flip();
-                    while (writeBuffer.hasRemaining()) {
-                        connectedClient.write(writeBuffer);
+                    WRITER_BUFFER.clear();
+                    WRITER_BUFFER.put(Byte.parseByte(String.valueOf(CHARSET.encode(getClientName(client) + ": " + forwardMsg))));
+                    WRITER_BUFFER.flip();
+                    while (WRITER_BUFFER.hasRemaining()) {
+                        connectedClient.write(WRITER_BUFFER);
                     }
                 }
             }
@@ -127,10 +126,10 @@ public class ChatServer {
 
     @SuppressWarnings("StatementWithEmptyBody")
     private String receive(SocketChannel client) throws IOException {
-        readBuffer.clear();
-        while (client.read(readBuffer) > 0);
-        readBuffer.flip();
-        return String.valueOf(charset.decode(readBuffer));
+        READ_BUFFER.clear();
+        while (client.read(READ_BUFFER) > 0);
+        READ_BUFFER.flip();
+        return String.valueOf(CHARSET.decode(READ_BUFFER));
     }
 
     public boolean readyToQuit(String msg) {
