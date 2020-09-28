@@ -15,6 +15,7 @@ import java.util.Set;
  * @author yangxin
  * 2020/09/28 19:25
  */
+@SuppressWarnings("StatementWithEmptyBody")
 public class ChatClient {
 
     private static final String DEFAULT_SERVER_HOST = "127.0.0.1";
@@ -22,21 +23,21 @@ public class ChatClient {
     private static final String QUIT = "quit";
     private static final int BUFFER = 1024;
 
-    private String host;
-    private int port;
+    private final String HOST;
+    private final int PORT;
     private SocketChannel client;
-    private ByteBuffer readBuffer = ByteBuffer.allocate(BUFFER);
-    private ByteBuffer writeBuffer = ByteBuffer.allocate(BUFFER);
+    private final ByteBuffer READ_BUFFER = ByteBuffer.allocate(BUFFER);
+    private final ByteBuffer WRITE_BUFFER = ByteBuffer.allocate(BUFFER);
     private Selector selector;
-    private Charset charset = StandardCharsets.UTF_8;
+    private final Charset CHARSET = StandardCharsets.UTF_8;
 
     public ChatClient() {
         this(DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT);
     }
 
-    public ChatClient(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public ChatClient(String HOST, int PORT) {
+        this.HOST = HOST;
+        this.PORT = PORT;
     }
 
     public boolean readyToQuit(String msg) {
@@ -63,7 +64,7 @@ public class ChatClient {
 
             selector = Selector.open();
             client.register(selector, SelectionKey.OP_CONNECT);
-            client.connect(new InetSocketAddress(host, port));
+            client.connect(new InetSocketAddress(HOST, PORT));
 
             while (true) {
                 selector.select();
@@ -86,10 +87,45 @@ public class ChatClient {
                 client.finishConnect();
 
                 // 处理用户的输入
-//                new Thread(new UserInputHandler(this)).start();
+                new Thread(new UserInputHandler(this)).start();
+            }
+            client.register(selector, SelectionKey.OP_READ);
+        } else if (key.isReadable()) {
+            // READ事件：服务器转发消息
+            SocketChannel client = (SocketChannel) key.channel();
+            String msg = receive(client);
+            if (msg == null || msg.isEmpty()) {
+                // 服务器异常
+                close(selector);
+            } else {
+                System.out.println(msg);
             }
         }
-        // READ事件：服务器转发消息
+    }
+
+    private String receive(SocketChannel client) throws IOException {
+        READ_BUFFER.clear();
+        while (client.read(READ_BUFFER) > 0);
+        READ_BUFFER.flip();
+        return String.valueOf(CHARSET.decode(READ_BUFFER));
+    }
+
+    public void send(String msg) throws IOException {
+        if (msg == null || msg.isEmpty()) {
+            return;
+        }
+
+        WRITE_BUFFER.clear();
+        WRITE_BUFFER.put(CHARSET.encode(msg));
+        WRITE_BUFFER.flip();
+        while (WRITE_BUFFER.hasRemaining()) {
+            client.write(WRITE_BUFFER);
+        }
+
+        // 检查用户是否准备退出
+        if (readyToQuit(msg)) {
+            close(selector);
+        }
     }
 
     public static void main(String[] args) {
