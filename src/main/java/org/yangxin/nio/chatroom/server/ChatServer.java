@@ -114,7 +114,7 @@ public class ChatServer {
                 SocketChannel connectedClient = (SocketChannel) key.channel();
                 if (!client.equals(connectedClient)) {
                     WRITER_BUFFER.clear();
-                    WRITER_BUFFER.put(Byte.parseByte(String.valueOf(CHARSET.encode(getClientName(client) + ": " + forwardMsg))));
+                    WRITER_BUFFER.put(CHARSET.encode(getClientName(client) + ": " + forwardMsg));
                     WRITER_BUFFER.flip();
                     while (WRITER_BUFFER.hasRemaining()) {
                         connectedClient.write(WRITER_BUFFER);

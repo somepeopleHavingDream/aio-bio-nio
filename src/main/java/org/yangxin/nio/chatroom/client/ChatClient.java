@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -76,31 +77,43 @@ public class ChatClient {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ClosedSelectorException e) {
+            // 用户正常退出
+        } finally {
+            close(selector);
         }
     }
 
     private void handles(SelectionKey key) throws IOException {
         // CONNECT事件：连接就绪事件
         if (key.isConnectable()) {
-            SocketChannel client = (SocketChannel) key.channel();
-            if (client.isConnectionPending()) {
-                client.finishConnect();
-
-                // 处理用户的输入
-                new Thread(new UserInputHandler(this)).start();
-            }
-            client.register(selector, SelectionKey.OP_READ);
+            handlesConnectable(key);
         } else if (key.isReadable()) {
             // READ事件：服务器转发消息
-            SocketChannel client = (SocketChannel) key.channel();
-            String msg = receive(client);
-            if (msg == null || msg.isEmpty()) {
-                // 服务器异常
-                close(selector);
-            } else {
-                System.out.println(msg);
-            }
+            handlesReadable(key);
         }
+    }
+
+    private void handlesReadable(SelectionKey key) throws IOException {
+        SocketChannel client = (SocketChannel) key.channel();
+        String msg = receive(client);
+        if (msg == null || msg.isEmpty()) {
+            // 服务器异常
+            close(selector);
+        } else {
+            System.out.println(msg);
+        }
+    }
+
+    private void handlesConnectable(SelectionKey key) throws IOException {
+        SocketChannel client = (SocketChannel) key.channel();
+        if (client.isConnectionPending()) {
+            client.finishConnect();
+
+            // 处理用户的输入
+            new Thread(new UserInputHandler(this)).start();
+        }
+        client.register(selector, SelectionKey.OP_READ);
     }
 
     private String receive(SocketChannel client) throws IOException {
