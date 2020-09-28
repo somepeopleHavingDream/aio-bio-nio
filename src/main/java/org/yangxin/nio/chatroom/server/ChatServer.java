@@ -75,14 +75,41 @@ public class ChatServer {
             SocketChannel client = server.accept();
             client.configureBlocking(false);
             client.register(selector, SelectionKey.OP_READ);
-            System.out.println("客户端【" + client.socket().getPort() + "】已连接。");
+            System.out.println(getClientName(client) + "已连接。");
+        } else if (selectionKey.isReadable()) {
+            // READ事件：客户端发送了消息
+            SocketChannel client = (SocketChannel) selectionKey.channel();
+            String forwardMsg = receive(client);
+            if (forwardMsg == null || forwardMsg.isEmpty()) {
+                // 客户端异常
+                selectionKey.cancel();
+                selector.wakeup();
+            } else {
+                forwardMessage(client, forwardMsg);
 
+                // 检查用户是否退出
+                if (readyToQuit(forwardMsg)) {
+                    selectionKey.cancel();
+                    selector.wakeup();
+                    System.out.println(getClientName(client) + "已断开。");
+                }
+            }
         }
+    }
 
-        // READ事件：客户端发送了消息
-        if (selectionKey.isReadable()) {
+    private String getClientName(SocketChannel client) {
+        return "客户端【" + client.socket().getPort() + "】";
+    }
 
-        }
+    private void forwardMessage(SocketChannel client, String forwardMsg) {
+
+    }
+
+    private String receive(SocketChannel client) throws IOException {
+        readBuffer.clear();
+        while (client.read(readBuffer) > 0);
+        readBuffer.flip();
+        return null;
     }
 
     public boolean readyToQuit(String msg) {
