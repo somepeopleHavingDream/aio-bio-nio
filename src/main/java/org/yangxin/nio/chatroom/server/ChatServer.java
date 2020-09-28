@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLOutput;
@@ -67,11 +68,17 @@ public class ChatServer {
         }
     }
 
-    private void handles(SelectionKey selectionKey) {
+    private void handles(SelectionKey selectionKey) throws IOException {
         // ACCEPT事件：和客户端建立了连接
         if (selectionKey.isAcceptable()) {
+            ServerSocketChannel server = (ServerSocketChannel) selectionKey.channel();
+            SocketChannel client = server.accept();
+            client.configureBlocking(false);
+            client.register(selector, SelectionKey.OP_READ);
+            System.out.println("客户端【" + client.socket().getPort() + "】已连接。");
 
         }
+
         // READ事件：客户端发送了消息
         if (selectionKey.isReadable()) {
 
