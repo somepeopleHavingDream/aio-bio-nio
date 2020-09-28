@@ -85,6 +85,7 @@ public class ChatServer {
                 selectionKey.cancel();
                 selector.wakeup();
             } else {
+                System.out.println(getClientName(client) + "：" + forwardMsg);
                 forwardMessage(client, forwardMsg);
 
                 // 检查用户是否退出
@@ -101,15 +102,28 @@ public class ChatServer {
         return "客户端【" + client.socket().getPort() + "】";
     }
 
-    private void forwardMessage(SocketChannel client, String forwardMsg) {
-
+    private void forwardMessage(SocketChannel client, String forwardMsg) throws IOException {
+        for (SelectionKey key : selector.keys()) {
+            if (key.isValid() && key.channel() instanceof SocketChannel) {
+                SocketChannel connectedClient = (SocketChannel) key.channel();
+                if (!client.equals(connectedClient)) {
+                    writeBuffer.clear();
+                    writeBuffer.put(Byte.parseByte(String.valueOf(charset.encode(getClientName(client) + ": " + forwardMsg))));
+                    writeBuffer.flip();
+                    while (writeBuffer.hasRemaining()) {
+                        connectedClient.write(writeBuffer);
+                    }
+                }
+            }
+        }
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     private String receive(SocketChannel client) throws IOException {
         readBuffer.clear();
         while (client.read(readBuffer) > 0);
         readBuffer.flip();
-        return null;
+        return String.valueOf(charset.decode(readBuffer));
     }
 
     public boolean readyToQuit(String msg) {
@@ -129,5 +143,7 @@ public class ChatServer {
     }
 
     public static void main(String[] args) {
+        ChatServer chatServer = new ChatServer(7777);
+        chatServer.start();
     }
 }
