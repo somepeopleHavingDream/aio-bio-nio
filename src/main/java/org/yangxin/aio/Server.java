@@ -16,8 +16,6 @@ import java.util.Map;
  */
 public class Server {
 
-    private final String LOCALHOST = "localhost";
-    private final int DEFAULT_PORT = 8888;
     private AsynchronousServerSocketChannel serverChannel;
 
     private void close(Closeable closeable) {
@@ -33,11 +31,14 @@ public class Server {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "InfiniteLoopStatement"})
     private void start() {
         try {
             // 绑定监听端口
+            // AsynchronousChannelGroup
             serverChannel = AsynchronousServerSocketChannel.open();
+            String LOCALHOST = "localhost";
+            int DEFAULT_PORT = 8888;
             serverChannel.bind(new InetSocketAddress(LOCALHOST, DEFAULT_PORT));
             System.out.println("启动服务器，监听端口：" + DEFAULT_PORT);
 
@@ -64,16 +65,15 @@ public class Server {
                 serverChannel.accept(null, this);
             }
 
-            AsynchronousSocketChannel clientChannel = asynchronousSocketChannel;
-            if (clientChannel != null && clientChannel.isOpen()) {
-                ClientHandler handler = new ClientHandler(clientChannel);
+            if (asynchronousSocketChannel != null && asynchronousSocketChannel.isOpen()) {
+                ClientHandler handler = new ClientHandler(asynchronousSocketChannel);
 
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 Map<String, Object> info = new HashMap<>();
                 info.put("type", "read");
                 info.put("buffer", buffer);
 
-                clientChannel.read(buffer, info, handler);
+                asynchronousSocketChannel.read(buffer, info, handler);
             }
         }
 
@@ -87,7 +87,7 @@ public class Server {
      * @author yangxin
      * 2020/09/30 17:38
      */
-    private class ClientHandler implements CompletionHandler<Integer, Object> {
+    private static class ClientHandler implements CompletionHandler<Integer, Object> {
 
         private final AsynchronousSocketChannel clientChannel;
 
@@ -95,6 +95,7 @@ public class Server {
             this.clientChannel = channel;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public void completed(Integer integer, Object o) {
             Map<String, Object> info = (Map<String, Object>) o;
@@ -105,12 +106,22 @@ public class Server {
                 buffer.flip();
                 info.put("type", "write");
                 clientChannel.write(buffer, info, this);
+            } else if ("write".equals(type)) {
+                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                info.put("type", "read");
+                info.put("buffer", buffer);
+                clientChannel.read(buffer, info, this);
             }
         }
 
         @Override
         public void failed(Throwable throwable, Object o) {
-
+            // 处理错误
         }
+    }
+
+    public static void main(String[] args) {
+        Server server = new Server();
+        server.start();
     }
 }
