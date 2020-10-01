@@ -1,4 +1,4 @@
-package org.yangxin.aio.chatroom;
+package org.yangxin.aio.chatroom.client;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -21,10 +21,10 @@ public class ChatClient {
     private static final String QUIT = "quit";
     private static final int BUFFER = 1024;
 
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
     private AsynchronousSocketChannel clientChannel;
-    private Charset charset = StandardCharsets.UTF_8;
+    private final Charset charset = StandardCharsets.UTF_8;
 
     public ChatClient() {
         this(LOCALHOST, DEFAULT_PORT);
@@ -51,6 +51,7 @@ public class ChatClient {
         }
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     private void start() {
         try {
             // 创建channel
@@ -82,10 +83,22 @@ public class ChatClient {
     }
 
     public void send(String msg) {
+        if (msg.isEmpty()) {
+            return;
+        }
 
+        ByteBuffer buffer = charset.encode(msg);
+        Future<Integer> writeResult = clientChannel.write(buffer);
+        try {
+            writeResult.get();
+        } catch (InterruptedException | ExecutionException e) {
+            System.out.println("发送消息失败");
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
-
+        ChatClient client = new ChatClient("127.0.0.1", 7777);
+        client.start();
     }
 }

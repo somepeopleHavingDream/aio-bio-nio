@@ -1,4 +1,4 @@
-package org.yangxin.aio.chatroom;
+package org.yangxin.aio.chatroom.server;
 
 import java.io.Closeable;
 import java.io.IOException;
