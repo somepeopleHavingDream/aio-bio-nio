@@ -62,7 +62,6 @@ public class FileCopyDemo {
                     outputStream = new BufferedOutputStream(new FileOutputStream(target));
 
                     byte[] buffer = new byte[1024];
-
                     int result;
                     while ((result = inputStream.read(buffer)) != -1) {
                         outputStream.write(buffer, 0, result);
