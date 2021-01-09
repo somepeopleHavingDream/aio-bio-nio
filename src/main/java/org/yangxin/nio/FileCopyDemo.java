@@ -26,6 +26,7 @@ public class FileCopyDemo {
 
     public static void main(String[] args) {
         FileCopyRunner noBufferStreamCopy = new FileCopyRunner() {
+
             @Override
             public void copyFile(File source, File target) {
                 InputStream inputStream = null;
@@ -53,6 +54,7 @@ public class FileCopyDemo {
         };
 
         FileCopyRunner bufferedStreamCopy = new FileCopyRunner() {
+
             @Override
             public void copyFile(File source, File target) {
                 InputStream inputStream = null;
@@ -81,6 +83,7 @@ public class FileCopyDemo {
         };
 
         FileCopyRunner nioBufferCopy = new FileCopyRunner() {
+
             @Override
             public void copyFile(File source, File target) {
                 FileChannel inputChannel = null;
@@ -113,6 +116,7 @@ public class FileCopyDemo {
         };
 
         FileCopyRunner nioTransferCopy = new FileCopyRunner() {
+
             @Override
             public void copyFile(File source, File target) {
                 FileChannel inputChannel = null;
