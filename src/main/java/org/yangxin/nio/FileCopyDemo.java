@@ -25,6 +25,7 @@ public class FileCopyDemo {
     }
 
     public static void main(String[] args) {
+        // 经典输入输出流单字节复制
         FileCopyRunner noBufferStreamCopy = new FileCopyRunner() {
 
             @Override
@@ -53,6 +54,7 @@ public class FileCopyDemo {
             }
         };
 
+        // 带缓冲的输入输出流复制
         FileCopyRunner bufferedStreamCopy = new FileCopyRunner() {
 
             @Override
@@ -82,6 +84,11 @@ public class FileCopyDemo {
             }
         };
 
+//        bufferedStreamCopy.copyFile(new File("/home/yangxin/Downloads/kafka-study-coding-master.tar.gz"),
+//                new File("/home/yangxin/Downloads/1.tar.gz")
+//        );
+
+        // 通道复制
         FileCopyRunner nioBufferCopy = new FileCopyRunner() {
 
             @Override
@@ -93,6 +100,8 @@ public class FileCopyDemo {
                     inputChannel = new FileInputStream(source).getChannel();
                     outputChannel = new FileOutputStream(target).getChannel();
 
+                    // 缓冲区大小为1k
+                    // Buffer始终会从position位置读或写
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
                     while (inputChannel.read(buffer) != -1) {
                         buffer.flip();
