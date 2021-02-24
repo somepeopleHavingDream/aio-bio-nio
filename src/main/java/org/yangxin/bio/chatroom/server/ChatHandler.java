@@ -19,6 +19,7 @@ public class ChatHandler implements Runnable {
         this.socket = socket;
     }
 
+    @Override
     public void run() {
         try {
             // 存储新上线的用户

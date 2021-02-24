@@ -12,7 +12,7 @@ import java.net.Socket;
 public class Server {
 
     public static void main(String[] args) {
-        final String QUIT = "quit";
+        final String quit = "quit";
         final int DEFAULT_PORT = 8888;
         ServerSocket serverSocket = null;
 
@@ -39,7 +39,7 @@ public class Server {
                     writer.flush();
 
                     // 查看客户端是否退出
-                    if (QUIT.equals(msg)) {
+                    if (quit.equals(msg)) {
                         System.out.println("客户端【" + socket.getPort() + "】已断开连接");
                         break;
                     }

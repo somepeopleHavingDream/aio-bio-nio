@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
  * @author yangxin
  * 2020/09/24 16:47
  */
+@SuppressWarnings("DuplicatedCode")
 public class UserInputHandler implements Runnable {
 
     private final ChatClient chatClient;

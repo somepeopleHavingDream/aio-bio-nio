@@ -7,6 +7,7 @@ import java.net.Socket;
  * @author yangxin
  * 2020/09/24 16:47
  */
+@SuppressWarnings("AlibabaAvoidManuallyCreateThread")
 public class ChatClient {
 
     private Socket socket;

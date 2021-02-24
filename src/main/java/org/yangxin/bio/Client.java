@@ -10,7 +10,7 @@ import java.net.Socket;
 public class Client {
 
     public static void main(String[] args) {
-        final String QUIT = "quit";
+        final String quit = "quit";
         final String DEFAULT_SERVER_HOST = "127.0.0.1";
         final int DEFAULT_SERVER_PORT = 8888;
         Socket socket;
@@ -38,7 +38,7 @@ public class Client {
                 System.out.println(msg);
 
                 // 查看用户是否退出
-                if (QUIT.equals(input)) {
+                if (quit.equals(input)) {
                     break;
                 }
             }

@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
  * @author yangxin
  * 2020/09/24 16:48
  */
-@SuppressWarnings("InfiniteLoopStatement")
+@SuppressWarnings({"InfiniteLoopStatement", "AlibabaThreadPoolCreation"})
 public class ChatServer {
 
     private final ExecutorService executorService;
@@ -76,15 +76,14 @@ public class ChatServer {
     public void start() {
         try {
             // 绑定监听端口
-            int DEFAULT_PORT = 8888;
-            serverSocket = new ServerSocket(DEFAULT_PORT);
-            System.out.println("启动服务器，监听端口：" + DEFAULT_PORT);
+            int defaultPort = 8888;
+            serverSocket = new ServerSocket(defaultPort);
+            System.out.println("启动服务器，监听端口：" + defaultPort);
 
             while (true) {
                 // 等待客户端连接
                 Socket socket = serverSocket.accept();
                 // 创建ChatHandler线程
-//                new Thread(new ChatHandler(this, socket)).start();
                 executorService.execute(new ChatHandler(this, socket));
             }
         } catch (IOException e) {
@@ -95,8 +94,8 @@ public class ChatServer {
     }
 
     public boolean readyToQuit(String msg) {
-        String QUIT = "quit";
-        return  QUIT.equals(msg);
+        String quit = "quit";
+        return  quit.equals(msg);
     }
 
     public synchronized void close() {
