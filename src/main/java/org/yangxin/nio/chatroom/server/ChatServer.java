@@ -32,8 +32,8 @@ public class ChatServer {
         this(DEFAULT_PORT);
     }
 
-    public ChatServer(int PORT) {
-        this.PORT = PORT;
+    public ChatServer(int port) {
+        this.PORT = port;
     }
 
     /**
@@ -127,7 +127,8 @@ public class ChatServer {
     @SuppressWarnings("StatementWithEmptyBody")
     private String receive(SocketChannel client) throws IOException {
         READ_BUFFER.clear();
-        while (client.read(READ_BUFFER) > 0);
+        while (client.read(READ_BUFFER) > 0) {
+        }
         READ_BUFFER.flip();
         return String.valueOf(CHARSET.decode(READ_BUFFER));
     }

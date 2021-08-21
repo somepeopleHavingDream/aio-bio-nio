@@ -16,7 +16,7 @@ import java.util.Set;
  * @author yangxin
  * 2020/09/28 19:25
  */
-@SuppressWarnings("StatementWithEmptyBody")
+@SuppressWarnings({"StatementWithEmptyBody", "AlibabaAvoidManuallyCreateThread"})
 public class ChatClient {
 
     private static final String DEFAULT_SERVER_HOST = "127.0.0.1";
@@ -36,9 +36,9 @@ public class ChatClient {
         this(DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT);
     }
 
-    public ChatClient(String HOST, int PORT) {
-        this.HOST = HOST;
-        this.PORT = PORT;
+    public ChatClient(String host, int port) {
+        this.HOST = host;
+        this.PORT = port;
     }
 
     public boolean readyToQuit(String msg) {
@@ -118,7 +118,8 @@ public class ChatClient {
 
     private String receive(SocketChannel client) throws IOException {
         READ_BUFFER.clear();
-        while (client.read(READ_BUFFER) > 0);
+        while (client.read(READ_BUFFER) > 0) {
+        }
         READ_BUFFER.flip();
         return String.valueOf(CHARSET.decode(READ_BUFFER));
     }

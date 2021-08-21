@@ -42,8 +42,8 @@ public class ChatClient {
      * 检查用户是否准备退出
      */
     public boolean readyToQuit(String msg) {
-        final String QUIT = "quit";
-        return QUIT.equals(msg);
+        final String quit = "quit";
+        return quit.equals(msg);
     }
 
     /**
@@ -52,9 +52,9 @@ public class ChatClient {
     public void start() {
         try {
             // 创建socket
-            final String DEFAULT_SERVER_HOST = "127.0.0.1";
-            final int DEFAULT_SERVER_PORT = 8888;
-            socket = new Socket(DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT);
+            final String defaultServerHost = "127.0.0.1";
+            final int defaultServerPort = 8888;
+            socket = new Socket(defaultServerHost, defaultServerPort);
 
             // 创建IO流
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));

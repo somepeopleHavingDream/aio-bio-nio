@@ -11,14 +11,14 @@ public class Client {
 
     public static void main(String[] args) {
         final String quit = "quit";
-        final String DEFAULT_SERVER_HOST = "127.0.0.1";
-        final int DEFAULT_SERVER_PORT = 8888;
+        final String defaultServerHost = "127.0.0.1";
+        final int defaultServerPort = 8888;
         Socket socket;
         BufferedWriter writer = null;
 
         try {
             // 创建socket
-            socket = new Socket(DEFAULT_SERVER_HOST, DEFAULT_SERVER_PORT);
+            socket = new Socket(defaultServerHost, defaultServerPort);
 
             // 创建IO流
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));

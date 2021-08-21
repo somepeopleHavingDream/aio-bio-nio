@@ -13,13 +13,13 @@ public class Server {
 
     public static void main(String[] args) {
         final String quit = "quit";
-        final int DEFAULT_PORT = 8888;
+        final int defaultPort = 8888;
         ServerSocket serverSocket = null;
 
         try {
             // 绑定监听端口
-            serverSocket = new ServerSocket(DEFAULT_PORT);
-            System.out.println("启动服务器，监听端口" + DEFAULT_PORT);
+            serverSocket = new ServerSocket(defaultPort);
+            System.out.println("启动服务器，监听端口" + defaultPort);
 
             while (true) {
                 // 等待客户端连接
