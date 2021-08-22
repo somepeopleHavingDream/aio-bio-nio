@@ -42,22 +42,23 @@ public class ChatServer {
     @SuppressWarnings("InfiniteLoopStatement")
     public void start() {
         try {
-            ServerSocketChannel server = ServerSocketChannel.open();
-            server.configureBlocking(false);
-            server.socket().bind(new InetSocketAddress(PORT));
+            ServerSocketChannel channel = ServerSocketChannel.open();
+            channel.configureBlocking(false);
+            channel.socket().bind(new InetSocketAddress(PORT));
 
             selector = Selector.open();
-            server.register(selector, SelectionKey.OP_ACCEPT);
+            channel.register(selector, SelectionKey.OP_ACCEPT);
             System.out.println("启动服务器，监听端口：" + PORT + "……");
 
             while (true) {
+                // select()阻塞到至少有一个通道在你注册的事件上就绪了
                 selector.select();
-                Set<SelectionKey> selectionKeySet = selector.selectedKeys();
-                for (SelectionKey selectionKey : selectionKeySet) {
+                Set<SelectionKey> keySet = selector.selectedKeys();
+                for (SelectionKey key : keySet) {
                     // 处理被触发的事件
-                    handles(selectionKey);
+                    handles(key);
                 }
-                selectionKeySet.clear();
+                keySet.clear();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,58 +67,60 @@ public class ChatServer {
         }
     }
 
-    private void handles(SelectionKey selectionKey) throws IOException {
+    private void handles(SelectionKey key) throws IOException {
         // ACCEPT事件：和客户端建立了连接
-        if (selectionKey.isAcceptable()) {
-            handlesAcceptable(selectionKey);
-        } else if (selectionKey.isReadable()) {
+        if (key.isAcceptable()) {
+            handlesAcceptable(key);
+        } else if (key.isReadable()) {
             // READ事件：客户端发送了消息
-            handlesReadable(selectionKey);
+            handlesReadable(key);
         }
     }
 
-    private void handlesReadable(SelectionKey selectionKey) throws IOException {
-        SocketChannel client = (SocketChannel) selectionKey.channel();
-        String forwardMsg = receive(client);
+    private void handlesReadable(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        String forwardMsg = receive(channel);
         if (forwardMsg == null || forwardMsg.isEmpty()) {
             // 客户端异常
-            selectionKey.cancel();
+            key.cancel();
+            // wakeup用于唤醒阻塞在select方法上的线程
             selector.wakeup();
         } else {
-            System.out.println(getClientName(client) + "：" + forwardMsg);
-            forwardMessage(client, forwardMsg);
+            System.out.println(getClientName(channel) + "：" + forwardMsg);
+            forwardMessage(channel, forwardMsg);
 
             // 检查用户是否退出
             if (readyToQuit(forwardMsg)) {
-                selectionKey.cancel();
+                key.cancel();
                 selector.wakeup();
-                System.out.println(getClientName(client) + "已断开。");
+                System.out.println(getClientName(channel) + "已断开。");
             }
         }
     }
 
-    private void handlesAcceptable(SelectionKey selectionKey) throws IOException {
-        ServerSocketChannel server = (ServerSocketChannel) selectionKey.channel();
-        SocketChannel client = server.accept();
-        client.configureBlocking(false);
-        client.register(selector, SelectionKey.OP_READ);
-        System.out.println(getClientName(client) + "已连接。");
+    private void handlesAcceptable(SelectionKey key) throws IOException {
+        ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
+        SocketChannel clientChannel = serverChannel.accept();
+        clientChannel.configureBlocking(false);
+        clientChannel.register(selector, SelectionKey.OP_READ);
+
+        System.out.println(getClientName(clientChannel) + "已连接。");
     }
 
     private String getClientName(SocketChannel client) {
         return "客户端【" + client.socket().getPort() + "】";
     }
 
-    private void forwardMessage(SocketChannel client, String forwardMsg) throws IOException {
+    private void forwardMessage(SocketChannel channel, String msg) throws IOException {
         for (SelectionKey key : selector.keys()) {
             if (key.isValid() && key.channel() instanceof SocketChannel) {
-                SocketChannel connectedClient = (SocketChannel) key.channel();
-                if (!client.equals(connectedClient)) {
+                SocketChannel connectedChannel = (SocketChannel) key.channel();
+                if (!channel.equals(connectedChannel)) {
                     WRITER_BUFFER.clear();
-                    WRITER_BUFFER.put(CHARSET.encode(getClientName(client) + ": " + forwardMsg));
+                    WRITER_BUFFER.put(CHARSET.encode(getClientName(channel) + ": " + msg));
                     WRITER_BUFFER.flip();
                     while (WRITER_BUFFER.hasRemaining()) {
-                        connectedClient.write(WRITER_BUFFER);
+                        connectedChannel.write(WRITER_BUFFER);
                     }
                 }
             }
@@ -125,9 +128,9 @@ public class ChatServer {
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
-    private String receive(SocketChannel client) throws IOException {
+    private String receive(SocketChannel channel) throws IOException {
         READ_BUFFER.clear();
-        while (client.read(READ_BUFFER) > 0) {
+        while (channel.read(READ_BUFFER) > 0) {
         }
         READ_BUFFER.flip();
         return String.valueOf(CHARSET.decode(READ_BUFFER));

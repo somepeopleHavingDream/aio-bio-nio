@@ -11,10 +11,10 @@ import java.io.InputStreamReader;
 @SuppressWarnings("DuplicatedCode")
 public class UserInputHandler implements Runnable {
 
-    private final ChatClient chatClient;
+    private final ChatClient client;
 
-    public UserInputHandler(ChatClient chatClient) {
-        this.chatClient = chatClient;
+    public UserInputHandler(ChatClient client) {
+        this.client = client;
     }
 
     @Override
@@ -26,10 +26,10 @@ public class UserInputHandler implements Runnable {
                 String input = consoleReader.readLine();
 
                 // 向服务器发送消息
-                chatClient.send(input);
+                client.send(input);
 
                 // 检查用户是否准备退出
-                if (chatClient.readyToQuit(input)) {
+                if (client.readyToQuit(input)) {
                     break;
                 }
             }

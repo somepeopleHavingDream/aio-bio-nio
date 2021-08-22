@@ -26,7 +26,7 @@ public class ChatClient {
 
     private final String HOST;
     private final int PORT;
-    private SocketChannel client;
+    private SocketChannel channel;
     private final ByteBuffer READ_BUFFER = ByteBuffer.allocate(BUFFER);
     private final ByteBuffer WRITE_BUFFER = ByteBuffer.allocate(BUFFER);
     private Selector selector;
@@ -60,20 +60,20 @@ public class ChatClient {
     @SuppressWarnings("InfiniteLoopStatement")
     private void start() {
         try {
-            client = SocketChannel.open();
-            client.configureBlocking(false);
+            channel = SocketChannel.open();
+            channel.configureBlocking(false);
 
             selector = Selector.open();
-            client.register(selector, SelectionKey.OP_CONNECT);
-            client.connect(new InetSocketAddress(HOST, PORT));
+            channel.register(selector, SelectionKey.OP_CONNECT);
+            channel.connect(new InetSocketAddress(HOST, PORT));
 
             while (true) {
                 selector.select();
-                Set<SelectionKey> selectionKeys = selector.selectedKeys();
-                for (SelectionKey key : selectionKeys) {
+                Set<SelectionKey> keySet = selector.selectedKeys();
+                for (SelectionKey key : keySet) {
                     handles(key);
                 }
-                selectionKeys.clear();
+                keySet.clear();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -95,8 +95,8 @@ public class ChatClient {
     }
 
     private void handlesReadable(SelectionKey key) throws IOException {
-        SocketChannel client = (SocketChannel) key.channel();
-        String msg = receive(client);
+        SocketChannel channel = (SocketChannel) key.channel();
+        String msg = receive(channel);
         if (msg == null || msg.isEmpty()) {
             // 服务器异常
             close(selector);
@@ -106,14 +106,14 @@ public class ChatClient {
     }
 
     private void handlesConnectable(SelectionKey key) throws IOException {
-        SocketChannel client = (SocketChannel) key.channel();
-        if (client.isConnectionPending()) {
-            client.finishConnect();
+        SocketChannel channel = (SocketChannel) key.channel();
+        if (channel.isConnectionPending()) {
+            channel.finishConnect();
 
             // 处理用户的输入
             new Thread(new UserInputHandler(this)).start();
         }
-        client.register(selector, SelectionKey.OP_READ);
+        channel.register(selector, SelectionKey.OP_READ);
     }
 
     private String receive(SocketChannel client) throws IOException {
@@ -133,7 +133,7 @@ public class ChatClient {
         WRITE_BUFFER.put(CHARSET.encode(msg));
         WRITE_BUFFER.flip();
         while (WRITE_BUFFER.hasRemaining()) {
-            client.write(WRITE_BUFFER);
+            channel.write(WRITE_BUFFER);
         }
 
         // 检查用户是否准备退出
